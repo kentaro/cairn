@@ -1,0 +1,55 @@
+[project]
+name = "cairn"
+version = "0.1.0"
+description = "Run agent CLIs (Claude Code, Codex, …) against a local MLX model on Apple Silicon."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "MIT"
+authors = [{ name = "Kentaro Kuribayashi", email = "kentarok@gmail.com" }]
+keywords = ["mlx", "llm", "claude-code", "codex", "apple-silicon", "local-llm"]
+dependencies = []
+
+[project.scripts]
+cairn = "cairn.cli:main"
+
+[project.optional-dependencies]
+# By default the backend (vllm-mlx) is installed separately:
+#   uv tool install vllm-mlx
+# To bundle it into cairn's tool environment instead:
+#   uv tool install "cairn[backend]"
+backend = ["vllm-mlx>=0.3.0"]
+
+[project.urls]
+Homepage = "https://github.com/kentaro/cairn"
+Repository = "https://github.com/kentaro/cairn"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/cairn"]
+
+[dependency-groups]
+dev = ["pytest>=8", "pyright>=1.1.390", "ruff>=0.8"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "ANN", "RUF", "PTH", "TC", "S"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["ANN", "S101"]
+
+[tool.pyright]
+include = ["src", "tests"]
+pythonVersion = "3.12"
+typeCheckingMode = "strict"
+reportMissingTypeStubs = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
