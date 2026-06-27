@@ -114,10 +114,11 @@ def _cmd_bench(config: Config, args: argparse.Namespace) -> int:
         print("cairn: server is not running; start it with `cairn up`", file=sys.stderr)
         return 1
     result = run_bench(config, max_tokens=int(args.max_tokens))
-    print(f"prompt tokens : {result.prompt_tokens}")
-    print(f"output tokens : {result.output_tokens}")
-    print(f"elapsed       : {result.elapsed_s:.2f}s")
-    print(f"throughput    : {result.tokens_per_second:.1f} tok/s")
+    print(f"decode        : {result.decode_tps:.1f} tok/s ({result.decode_tokens} tokens)")
+    print(f"prefix tokens : {result.prefix_tokens}")
+    print(f"prefill cold  : {result.cold_s:.2f}s")
+    print(f"prefill warm  : {result.warm_s:.2f}s (prefix cache)")
+    print(f"cache speedup : {result.cache_speedup:.1f}x")
     return 0
 
 

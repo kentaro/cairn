@@ -60,11 +60,22 @@ enable_prefix_cache = true
 
 ## Honest performance note
 
-On an M4 Max, warm generation is fast (~91 tok/s for this MoE model). But a real
-Claude Code turn re-prefills a ~44K-token prompt (system + ~98 tool definitions)
-every step, so each turn takes minutes. **Full-local Claude Code is great for
-experiments and short one-shots, not for heavy day-to-day agentic work.** Details
-and numbers in [`docs/DESIGN.md`](docs/DESIGN.md).
+On an M4 Max, this setup is fast where it counts:
+
+- **decode** ~100 tok/s for this MoE model
+- **prefix cache** reuses a shared prompt prefix across requests — measured
+  36–50× speedup (e.g. 11.5s cold → 0.2s warm), and it reuses partial prefixes
+  (same head, different tail), exactly what multi-turn workloads need.
+
+The catch is Claude Code specifically: its per-turn prompt prefix is *not*
+byte-stable (it injects dynamic context), so the cache can't reuse the ~44K-token
+head and every turn re-prefills from scratch — minutes per turn. **So cairn shines
+for workloads where you control the prompt** (your own apps/scripts, batch jobs,
+repeated templates, RAG), not for full-local Claude Code day-to-day. Measurements
+and the cache experiments are in [`docs/DESIGN.md`](docs/DESIGN.md).
+
+Run `cairn bench` to see decode tok/s and the cold→warm prefix-cache speedup on
+your machine.
 
 ## License
 
