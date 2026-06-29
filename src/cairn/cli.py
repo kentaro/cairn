@@ -151,7 +151,8 @@ def _launch(config: Config, profile_name: str, rest: list[str]) -> int:
 
     Backend(config).ensure_running()
     env = os.environ | profile.build_env(config)
-    os.execvpe(binary, [binary, *rest], env)  # noqa: S606 - replaces the process; never returns
+    argv = [binary, *profile.build_args(config), *rest]
+    os.execvpe(binary, argv, env)  # noqa: S606 - replaces the process; never returns
 
 
 def _strip_separator(rest: list[str]) -> list[str]:

@@ -48,8 +48,18 @@ def test_launch_strips_double_dash(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_run_routes_to_profile(monkeypatch: pytest.MonkeyPatch) -> None:
-    argv, env = _capture_launch(monkeypatch, ["run", "codex", "--foo"])
-    assert argv == ["/usr/bin/codex", "--foo"]
+    argv, env = _capture_launch(monkeypatch, ["run", "claude", "--foo"])
+    assert argv == ["/usr/bin/claude", "--foo"]  # claude injects no default args
+    assert "ANTHROPIC_BASE_URL" in env
+
+
+def test_codex_injects_provider_args(monkeypatch: pytest.MonkeyPatch) -> None:
+    argv, env = _capture_launch(monkeypatch, ["codex", "exec", "hi"])
+    assert argv[0] == "/usr/bin/codex"
+    # cairn provider override + local model are injected before the user's args
+    assert "model_provider=cairn" in argv
+    assert "model_providers.cairn.wire_api=responses" in argv
+    assert argv[-2:] == ["exec", "hi"]
     assert "OPENAI_BASE_URL" in env
 
 
