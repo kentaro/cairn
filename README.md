@@ -61,19 +61,25 @@ enable_prefix_cache = true
 
 ## Honest performance note
 
-On an M4 Max, this setup is fast where it counts:
+On an M4 Max, the model and server are fast where it counts: **decode** ~90 tok/s
+for this MoE model, and the **prefix cache** reuses a shared prompt prefix across
+requests (measured 36–50× speedup, incl. partial prefixes).
 
-- **decode** ~100 tok/s for this MoE model
-- **prefix cache** reuses a shared prompt prefix across requests — measured
-  36–50× speedup (e.g. 11.5s cold → 0.2s warm), and it reuses partial prefixes
-  (same head, different tail), exactly what multi-turn workloads need.
+What actually makes or breaks a local agent is whether the **client keeps its
+prompt prefix byte-stable** — that's what lets the cache skip re-prefilling the
+big head every turn. Measured, same model and task:
 
-The catch is Claude Code specifically: its per-turn prompt prefix is *not*
-byte-stable (it injects dynamic context), so the cache can't reuse the ~44K-token
-head and every turn re-prefills from scratch — minutes per turn. **So cairn shines
-for workloads where you control the prompt** (your own apps/scripts, batch jobs,
-repeated templates, RAG, and Codex CLI), not for full-local Claude Code
-day-to-day. Measurements and the cache experiments are in
+| | Claude Code | Codex CLI |
+| --- | --- | --- |
+| prompt / turn | ~45K tok | ~16K tok |
+| re-prefill on turn 2 | **45,190 tok** (cache busts) | **96 tok** (99% hit) |
+| feel | minutes/turn | near-instant after turn 1 |
+
+Claude Code injects dynamic context into its prompt head (it's co-designed with
+Anthropic's server-side prompt caching), so full-local CC re-prefills ~45K every
+turn. **Codex keeps its prefix stable, so `cairn codex` is genuinely practical
+on a local model.** Use plain `claude` for hard work; use `cairn codex` (or your
+own prompt-stable apps/scripts, batch jobs, RAG) for local. Details in
 [`docs/BENCHMARK.md`](docs/BENCHMARK.md).
 
 Run `cairn bench` to see decode tok/s and the cold→warm prefix-cache speedup on
