@@ -25,8 +25,9 @@ Claude **subscription token never passes through any third-party tool** (it
 stays with the official `claude`). Use plain `claude` for real work; use `cairn`
 for throwaway / offline / cheap tasks on a local model.
 
-See [`docs/DESIGN.md`](docs/DESIGN.md) for the full rationale and **measured**
-performance (incl. why full-local Claude Code is prefill-bound).
+See [`docs/DESIGN.md`](docs/DESIGN.md) for the design rationale, and
+[`docs/BENCHMARK.md`](docs/BENCHMARK.md) for **measured** accuracy/speed and the
+analysis (incl. why full-local Claude Code is prefill-bound while Codex is not).
 
 ## Requirements
 
@@ -71,8 +72,9 @@ The catch is Claude Code specifically: its per-turn prompt prefix is *not*
 byte-stable (it injects dynamic context), so the cache can't reuse the ~44K-token
 head and every turn re-prefills from scratch — minutes per turn. **So cairn shines
 for workloads where you control the prompt** (your own apps/scripts, batch jobs,
-repeated templates, RAG), not for full-local Claude Code day-to-day. Measurements
-and the cache experiments are in [`docs/DESIGN.md`](docs/DESIGN.md).
+repeated templates, RAG, and Codex CLI), not for full-local Claude Code
+day-to-day. Measurements and the cache experiments are in
+[`docs/BENCHMARK.md`](docs/BENCHMARK.md).
 
 Run `cairn bench` to see decode tok/s and the cold→warm prefix-cache speedup on
 your machine.
